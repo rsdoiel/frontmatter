@@ -1,0 +1,15 @@
+{
+  "found": true,
+  "error": "",
+  "meta": {
+    "title": "T",
+    "source": {
+      "title": "S",
+      "url": "https://example.org/"
+    },
+    "keywords": [
+      "a",
+      "b"
+    ]
+  }
+}
