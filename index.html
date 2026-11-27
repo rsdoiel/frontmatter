@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <title>frontmatter</title>
+    <link rel="alternate" type="text/markdown" href="index.md">
+    <link rel="stylesheet" href="/css/site.css">
+</head>
+<body>
+<a href="#main-content" class="visually-hidden">skip to main content</a>
+<nav>
+<ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="LICENSE">LICENSE</a></li>
+    <li><a href="CHANGES.html">Changes</a></li>
+    <li><a href="about.html">About</a></li>
+    <li><a href="https://pkg.go.dev/github.com/rsdoiel/frontmatter">Go package docs</a></li>
+    <li><a href="https://github.com/rsdoiel/frontmatter">Code Repository</a></li>
+</ul>
+</nav>
+<section id="main-content">
+<h1 id="frontmatter">frontmatter</h1>
+<p>A Go module for the front matter of Markdown and other plain text
+documents: split it from the body, read it, strip it, expand
+<code>{{page.KEY}}</code> macros from it and expand
+<code>@include</code> directives. YAML only.</p>
+<p>It extends what the other modules and programs around the Markdown
+web need (cmarkbrowser, antennaApp and others), so that they agree about
+where front matter ends, what a macro expands to and how an include
+behaves.</p>
+<pre class="shell"><code>go get github.com/rsdoiel/frontmatter</code></pre>
+<p>Requires Go 1.27.4 or later, <code>github.com/yuin/goldmark</code>
+(for anything that must understand Markdown) and
+<code>gopkg.in/yaml.v3</code>.</p>
+<h2 id="front-matter">Front matter</h2>
+<p>Front matter is a YAML block at the very top of a file. The first
+line is <code>---</code> and nothing else. The block ends at the next
+line that is <code>---</code> or <code>...</code> and nothing else.
+Everything after is the body, returned as the original bytes: line
+endings and the final newline are never changed. A UTF-8 byte-order mark
+before the first line is skipped. A later <code>---</code> line is body
+(a Markdown rule).</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>meta<span class="op">,</span> body<span class="op">,</span> err <span class="op">:=</span> frontmatter<span class="op">.</span>Split<span class="op">([]</span><span class="dt">byte</span><span class="op">(</span><span class="st">&quot;---</span><span class="ch">\n</span><span class="st">title: Hi</span><span class="ch">\n</span><span class="st">---</span><span class="ch">\n</span><span class="st">Text.</span><span class="ch">\n</span><span class="st">&quot;</span><span class="op">))</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co">// meta[&quot;title&quot;] == &quot;Hi&quot;, string(body) == &quot;Text.\n&quot;, err == nil</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>body <span class="op">=</span> frontmatter<span class="op">.</span>Strip<span class="op">(</span>src<span class="op">)</span>        <span class="co">// the body, or src itself when there is no block</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>meta<span class="op">,</span> err <span class="op">=</span> frontmatter<span class="op">.</span>Meta<span class="op">(</span>src<span class="op">)</span>    <span class="co">// only the metadata</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>raw<span class="op">,</span> bodyAt<span class="op">,</span> found<span class="op">,</span> err <span class="op">:=</span> frontmatter<span class="op">.</span>Block<span class="op">(</span>src<span class="op">)</span> <span class="co">// only the delimiters; no YAML is read</span></span></code></pre></div>
+<ul>
+<li>Only YAML that conforms to the YAML specification is read. There is
+no lenient mode, so tools such as <code>yq</code> work on any front
+matter this module reads. TOML (<code>+++</code>) and JSON front matter
+are not recognised.</li>
+<li>Values are what <code>gopkg.in/yaml.v3</code> decodes: a bare date
+such as <code>2026-08-19</code> is a <code>time.Time</code>, a quoted
+one is a string.</li>
+<li>A block that is not closed is an error, <code>ErrUnclosed</code>.
+Bad YAML is <code>ErrParse</code>; YAML that is a list or a single value
+is <code>ErrNotMapping</code>. Test with <code>errors.Is</code>. The
+module applies no policy beyond reporting: a reader may show the raw
+text, a validator may fail. When the block is closed but unusable,
+<code>Split</code> still returns the body.</li>
+<li>A document with no block, or an empty one, has an empty (not nil)
+metadata map.</li>
+</ul>
+<h2 id="macros">Macros</h2>
+<p><code>{{page.KEY}}</code> in the text is replaced by the front matter
+value KEY, so a page can start with <code># {{page.title}}</code>.
+Spaces inside the braces are allowed, and a dotted key reaches into a
+table (<code>{{page.source.title}}</code>). A list shows its items
+joined with commas; a date shows as <code>2026-11-19</code>.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>out<span class="op">,</span> report <span class="op">:=</span> frontmatter<span class="op">.</span>Expand<span class="op">(</span><span class="st">&quot;# {{page.title}}&quot;</span><span class="op">,</span> <span class="kw">map</span><span class="op">[</span><span class="dt">string</span><span class="op">]</span><span class="dt">any</span><span class="op">{</span><span class="st">&quot;title&quot;</span><span class="op">:</span> <span class="st">&quot;Hi&quot;</span><span class="op">})</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co">// out == &quot;# Hi&quot;; report.Missing lists keys that had no value</span></span></code></pre></div>
+<p><code>Expand</code> takes Markdown and returns Markdown. For a
+program that renders HTML, <code>MacroOption</code> is a goldmark parser
+option that expands the macros in the parsed document:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">var</span> report frontmatter<span class="op">.</span>Report</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>md <span class="op">:=</span> goldmark<span class="op">.</span>New<span class="op">(</span>goldmark<span class="op">.</span>WithParserOptions<span class="op">(</span>frontmatter<span class="op">.</span>MacroOption<span class="op">(</span>meta<span class="op">,</span> <span class="op">&amp;</span>report<span class="op">)))</span></span></code></pre></div>
+<p>Both leave code spans and code blocks alone, make one pass (a value
+that holds a macro is shown as written), and insert a value so that it
+cannot become markup, a link, HTML or the start of a heading or list. A
+key that is absent, null or a table leaves the macro visible and is
+reported once in <code>Report.Missing</code>. When the page has a
+<code>link</code> value, the expanded title is a link to it (http,
+https, mailto or relative addresses only), unless the macro is already
+inside a link.</p>
+<h2 id="includes">Includes</h2>
+<div class="sourceCode" id="cb5"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>out<span class="op">,</span> included<span class="op">,</span> err <span class="op">:=</span> frontmatter<span class="op">.</span>Includes<span class="op">(</span>text<span class="op">,</span> os<span class="op">.</span>DirFS<span class="op">(</span><span class="st">&quot;.&quot;</span><span class="op">),</span> frontmatter<span class="op">.</span>Markdown<span class="op">)</span></span></code></pre></div>
+<p>In the Markdown format, <code>@include-text-block FILE</code> at the
+start of a line is replaced by the text of FILE, and
+<code>@include-code-block FILE [LANGUAGE]</code> by FILE as a code
+block:</p>
+<pre><code>@include-text-block author.md
+@include-code-block main.go go</code></pre>
+<ul>
+<li>Files are read through the <code>fs.FS</code> you pass, so the root
+is yours to choose. A name that is absolute or leaves the root with
+<code>..</code> is refused.</li>
+<li>A text file is itself expanded; a code file never is. An included
+file’s front matter is dropped.</li>
+<li>A code file is written as <code>~~~LANGUAGE</code> …
+<code>~~~</code>. A file with a line that would close that fence early
+(nothing but three or more tildes) is not included: the directive is
+left as written and a warning says to indent the example in that
+file.</li>
+<li>A directive inside a fenced code block is left alone, so a page can
+show the syntax.</li>
+<li>A missing file, a directory or an unreadable file leaves the
+directive as written. Everything is reported in
+<code>included.Warnings</code>; <code>included.Files</code> lists every
+file a directive named, once each, in the order met.</li>
+<li>Nesting deeper than three levels draws a warning; deeper than five
+(<code>ErrTooDeep</code>), or a file that includes itself
+(<code>ErrCycle</code>), is an error that names the chain.</li>
+</ul>
+<p>A <code>Format</code> says how another kind of document spells its
+directives (for example a Fountain format with no code includes). The
+engine knows nothing else about the format.</p>
+<h2 id="conformance-corpus">Conformance corpus</h2>
+<p><code>testdata/split/</code> holds one input, one expected body and
+one expected result per case, byte for byte, with a README that says
+where each case came from. It is the specification of the front matter
+rules and can be used to test a program that has its own splitter.</p>
+<h2 id="status">Status</h2>
+<p>Version 0.0.1, unreleased work in progress. See
+<code>CHANGES.md</code> and <code>TODO.md</code>.</p>
+<h3 id="authors">Authors</h3>
+<ul>
+<li>Doiel, R. S.</li>
+</ul>
+<h2 id="related-resources">Related resources</h2>
+<ul>
+<li><a href="https://github.com/rsdoiel/frontmatter/issues">Getting
+Help, Reporting bugs</a></li>
+<li><a href="https://www.gnu.org/licenses/agpl-3.0.txt">LICENSE</a></li>
+<li><a href="about.html">About</a></li>
+</ul>
+</section>
+<footer>
+<p>frontmatter. This page is also published as <a href="index.md">Markdown</a>.</p>
+</footer>
+</body>
+</html>

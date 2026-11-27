@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <title>frontmatter</title>
+    <link rel="alternate" type="text/markdown" href="CHANGES.md">
+    <link rel="stylesheet" href="/css/site.css">
+</head>
+<body>
+<a href="#main-content" class="visually-hidden">skip to main content</a>
+<nav>
+<ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="LICENSE">LICENSE</a></li>
+    <li><a href="CHANGES.html">Changes</a></li>
+    <li><a href="about.html">About</a></li>
+    <li><a href="https://pkg.go.dev/github.com/rsdoiel/frontmatter">Go package docs</a></li>
+    <li><a href="https://github.com/rsdoiel/frontmatter">Code Repository</a></li>
+</ul>
+</nav>
+<section id="main-content">
+<h1 id="change-log">Change log</h1>
+<h2 id="section">0.0.1 (2026-11-26)</h2>
+<p>First release.</p>
+<ul>
+<li><code>Split</code>, <code>Block</code>, <code>Strip</code> and
+<code>Meta</code> read the YAML front matter block at the top of a file.
+The block is closed by <code>---</code> or <code>...</code>; a UTF-8
+byte-order mark before it is skipped; an unclosed block is an error
+(<code>ErrUnclosed</code>); the body is the original bytes. Only YAML
+that conforms to the YAML specification is read.</li>
+<li><code>Expand</code> and <code>MacroOption</code> expand
+<code>{{page.KEY}}</code> macros, for Markdown to Markdown and for a
+goldmark parser. Code is never touched; values cannot become markup; the
+title becomes a link when the page has a safe <code>link</code>
+value.</li>
+<li><code>Includes</code> expands <code>@include-text-block</code> and
+<code>@include-code-block</code> through an <code>fs.FS</code>, with
+nesting, cycle and depth limits, a report of the files named, directives
+in fenced code left alone, and a code file fenced with <code>~~~</code>
+and refused when one of its lines would close the fence.
+<code>Format</code> lets another kind of document spell its own
+directives.</li>
+<li>A conformance corpus in <code>testdata/split</code>.</li>
+</ul>
+</section>
+<footer>
+<p>frontmatter. This page is also published as <a href="CHANGES.md">Markdown</a>.</p>
+</footer>
+</body>
+</html>

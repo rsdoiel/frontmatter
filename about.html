@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <title>frontmatter</title>
+    <link rel="alternate" type="text/markdown" href="about.md">
+    <link rel="stylesheet" href="/css/site.css">
+</head>
+<body>
+<a href="#main-content" class="visually-hidden">skip to main content</a>
+<nav>
+<ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="LICENSE">LICENSE</a></li>
+    <li><a href="CHANGES.html">Changes</a></li>
+    <li><a href="about.html">About</a></li>
+    <li><a href="https://pkg.go.dev/github.com/rsdoiel/frontmatter">Go package docs</a></li>
+    <li><a href="https://github.com/rsdoiel/frontmatter">Code Repository</a></li>
+</ul>
+</nav>
+<section id="main-content">
+<h1 id="about-this-software">About this software</h1>
+<h2 id="frontmatter-0.0.1">frontmatter 0.0.1</h2>
+<ul>
+<li>first release</li>
+<li>Split, Block, Strip and Meta: the YAML front matter block at the top
+of a file, closed by <code>---</code> or <code>...</code>, a UTF-8
+byte-order mark skipped, an unclosed block an error (ErrUnclosed), the
+body returned as the original bytes</li>
+<li>Expand and MacroOption: <code>{{page.KEY}}</code> macros from the
+front matter, for Markdown to Markdown and for a goldmark parser; code
+is never touched; the title becomes a link when the page has a safe link
+value</li>
+<li>Includes: <code>@include-text-block</code> and
+<code>@include-code-block</code> over an fs.FS, nested text includes,
+cycle and depth errors, directives in fenced code left alone, a code
+file fenced with <code>~~~</code> and refused when a line would close
+the fence early; a Format says how another kind of document spells its
+directives</li>
+<li>a conformance corpus in testdata/split</li>
+<li>requires github.com/yuin/goldmark and gopkg.in/yaml.v3</li>
+<li>YAML only: TOML and JSON front matter are not read</li>
+</ul>
+<h2 id="authors">Authors</h2>
+<ul>
+<li><a href="https://orcid.org/0000-0003-0900-6903">R. S. Doiel</a></li>
+</ul>
+<h2 id="maintainers">Maintainers</h2>
+<ul>
+<li><a href="https://orcid.org/0000-0003-0900-6903">R. S. Doiel</a></li>
+</ul>
+<p>A Go module for the front matter of Markdown and other plain text
+documents: split it from the body, read it, strip it, expand
+<code>{{page.KEY}}</code> macros from it and expand
+<code>@include</code> directives. YAML only.</p>
+<ul>
+<li><a href="https://www.gnu.org/licenses/agpl-3.0.txt">License</a></li>
+<li><a href="https://github.com/rsdoiel/frontmatter">Code Repository</a>
+<ul>
+<li><a href="https://github.com/rsdoiel/frontmatter/issues">Issue
+Tracker</a></li>
+</ul></li>
+</ul>
+<h2 id="programming-languages">Programming languages</h2>
+<ul>
+<li>Go &gt;= 1.27.4</li>
+</ul>
+<h2 id="software-requirements">Software Requirements</h2>
+<ul>
+<li>Go &gt;= 1.27.4</li>
+<li>github.com/yuin/goldmark &gt;= 1.8.7</li>
+<li>gopkg.in/yaml.v3 &gt;= 3.0.1</li>
+</ul>
+<h2 id="software-suggestions">Software Suggestions</h2>
+<ul>
+<li>CMTools &gt;= 0.0.46</li>
+<li>GNU Make &gt;= 3</li>
+</ul>
+</section>
+<footer>
+<p>frontmatter. This page is also published as <a href="about.md">Markdown</a>.</p>
+</footer>
+</body>
+</html>
